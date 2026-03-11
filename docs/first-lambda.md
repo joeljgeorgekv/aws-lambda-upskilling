@@ -43,7 +43,7 @@ Client -> API Gateway -> Lambda -> Response
 Use this Node.js example:
 
 ```js
-exports.handler = async (event) => {
+export const handler = async (event) => {
   const params = event.queryStringParameters || {};
   const a = Number(params.a);
   const b = Number(params.b);
@@ -134,7 +134,7 @@ In this case:
 ### Flow
 
 ```text
-Producer -> Input Queue -> Lambda -> Output Queue
+Producer -> SQS Queue -> Lambda
 ```
 
 ### Step 1: Create the Lambda function
@@ -152,63 +152,44 @@ Producer -> Input Queue -> Lambda -> Output Queue
 Use this Node.js example:
 
 ```js
-const AWS = require('aws-sdk');
-const sqs = new AWS.SQS();
-
-exports.handler = async (event) => {
+export const handler = async (event) => {
   for (const record of event.Records) {
-    const body = JSON.parse(record.body);
-    const a = Number(body.a);
-    const b = Number(body.b);
+    try {
+      const body = JSON.parse(record.body);
+      const a = Number(body.a);
+      const b = Number(body.b);
 
-    if (Number.isNaN(a) || Number.isNaN(b)) {
-      continue;
+      if (Number.isNaN(a) || Number.isNaN(b)) {
+        console.log("Invalid numbers:", record.body);
+        continue;
+      }
+
+      const sum = a + b;
+      console.log("sum =", sum);
+    } catch (err) {
+      console.error("Failed to process record:", err, record.body);
     }
-
-    const sum = a + b;
-
-    await sqs.sendMessage({
-      QueueUrl: process.env.OUTPUT_QUEUE_URL,
-      MessageBody: JSON.stringify({
-        a,
-        b,
-        sum
-      })
-    }).promise();
   }
 };
 ```
 
-### Step 3: Create two SQS queues
+### Step 3: Create an SQS queue
 
 1. Open the SQS service
 2. Click **Create queue**
 3. Choose **Standard queue**
-4. Enter a queue name like `add-two-numbers-input-queue`
+4. Enter a queue name like `add-two-numbers-queue`
 5. Create the queue
-6. Create one more queue named `add-two-numbers-output-queue`
 
-### Step 4: Add the input queue as the trigger
+### Step 4: Add SQS as the trigger
 
 1. Go back to the Lambda function
 2. Click **Add trigger**
 3. Select **SQS**
-4. Choose `add-two-numbers-input-queue`
+4. Choose `add-two-numbers-queue`
 5. Add the trigger
 
-### Step 5: Add the output queue URL as an environment variable
-
-1. Open the Lambda function configuration
-2. Go to **Environment variables**
-3. Add a variable named `OUTPUT_QUEUE_URL`
-4. Paste the URL of `add-two-numbers-output-queue`
-5. Save the changes
-
-### Step 6: Give Lambda permission to send messages to the output queue
-
-Your Lambda execution role should allow `sqs:SendMessage` on the output queue.
-
-### Step 7: Send a test message to the input queue
+### Step 5: Send a test message to the queue
 
 Use a message body like this:
 
@@ -219,28 +200,24 @@ Use a message body like this:
 }
 ```
 
-### Step 8: Check the output queue
+### Step 6: Check the Lambda logs
 
 Since this is asynchronous, you will not get a direct HTTP response.
 
-Instead, the result should appear in the output queue.
+Instead, Lambda will process the message in the background.
 
-1. Open the SQS service
-2. Open `add-two-numbers-output-queue`
-3. Poll for messages
-4. Inspect the result message
+1. Open the Lambda function
+2. Go to **Monitor**
+3. Open **CloudWatch Logs**
+4. Find the log output for the message
 
-Expected message body:
+Expected log output:
 
-```json
-{
-  "a": 5,
-  "b": 7,
-  "sum": 12
-}
+```text
+sum = 12
 ```
 
-### Step 9: Understand the event
+### Step 7: Understand the event
 
 For SQS, Lambda receives an event with a `Records` array.
 
@@ -258,9 +235,9 @@ It is asynchronous because the sender does not wait for Lambda to return a direc
 
 That means:
 
-- The message is placed in an input queue
+- The message is placed in a queue
 - Lambda processes it later
-- The result is sent to an output queue
+- The result is handled in the background
 - This pattern is common for background work
 
 ## Synchronous vs asynchronous summary
@@ -268,14 +245,14 @@ That means:
 | Type | Trigger | Input source | Output style |
 | --- | --- | --- | --- |
 | Synchronous | API Gateway | Query parameters or request body | Direct HTTP response |
-| Asynchronous | SQS | Queue message body | Output queue or downstream processing |
+| Asynchronous | SQS | Queue message body | Background processing and logs |
 
 ## What to look for
 
 - Did the Lambda function receive the event in the expected shape?
 - Did the numbers get converted correctly?
 - Did the sum logic work?
-- Was the result message sent to the output queue?
+- Did the logs show the result?
 - Did you understand why one case returns immediately and the other does not?
 
 ## Common beginner mistakes
@@ -294,7 +271,7 @@ Use `Number(...)` before adding them.
 
 ### Missing permissions
 
-If the Lambda role cannot read from the input queue or send to the output queue, the function will not work correctly.
+If the Lambda role cannot read from the queue or write logs, the function will not work correctly.
 
 ### Testing only one path
 
@@ -304,17 +281,5 @@ Always test:
 - Missing numbers
 - Invalid input like text values
 
-## Success checklist
 
-You are ready to move on if you can:
 
-- Explain the difference between synchronous and asynchronous Lambda
-- Build a Lambda behind API Gateway
-- Build a Lambda triggered by SQS
-- Parse the event correctly in both cases
-- Add two numbers and verify the result
-- Find the result in the response or output queue
-
-## Continue next
-
-Move to [Integrations](#/integrations).

@@ -64,15 +64,6 @@ Examples:
 - Message in SQS
 - Scheduled event from EventBridge
 
-### Runtime
-
-The runtime is the language environment your code runs in.
-Examples:
-
-- Node.js
-- Python
-- Java
-- .NET
 
 ### Execution role
 
@@ -160,37 +151,7 @@ Lambda integrates with many AWS services:
 9. SQS
 10. Cognito
 
-## Memory and performance
-
-Increasing memory also increases CPU allocation.
-
-More memory can make your function run faster, but costs more.
-
-## What you should know before starting
-
-Helpful background:
-
-- Basic programming knowledge
-- Basic idea of JSON
-- Basic command line familiarity
-- A free or learning AWS account
-
-You do **not** need deep DevOps knowledge to start.
-
-## Your goal for this section
-
-By the end of this section, you should be able to explain:
-
-- What Lambda does
-- What serverless means
-- What triggers a function
-- Why permissions matter
-- Where logs go
-- The free tier and basic pricing
-- Memory limits and performance
-- Supported runtimes
-- Key integrations
 
 ## Continue next
 
-Move to [Core Concepts](#/core-concepts).
+Move to [Core Concepts](./core-concepts.md).

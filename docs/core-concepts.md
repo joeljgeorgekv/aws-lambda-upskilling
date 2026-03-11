@@ -131,4 +131,4 @@ Understand them, but first learn the basics well.
 
 ## Continue next
 
-Move to [First Lambda](#/first-lambda).
+Move to [First Lambda](./first-lambda.md).
