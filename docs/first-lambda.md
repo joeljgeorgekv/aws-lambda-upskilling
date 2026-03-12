@@ -144,7 +144,8 @@ Producer -> SQS Queue -> Lambda
 3. Choose **Author from scratch**
 4. Enter a function name like `add-two-numbers-async`
 5. Choose **Node.js** as the runtime
-6. Create or use a role with permissions for SQS and logs
+6. Create or use a role with permissions for SQS and logs  
+   **Tip**: Use the managed policy `AWSLambdaSQSQueueExecutionRole` for SQS-triggered functions
 7. Click **Create function**
 
 ### Step 2: Add the Lambda code
