@@ -4,6 +4,7 @@
 - [First Lambda](first-lambda.md)
 - [Performance & Pricing](performance-pricing.md)
 - [Firecracker](firecracker.md)
+- [Lambda Configuration](lambda-configuration.md)
 <!-- - [Integrations](integrations.md)
 - [Best Practices](best-practices.md)
 - [GitHub Pages Hosting](github-pages.md) -->
